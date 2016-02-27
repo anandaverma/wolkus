@@ -1,20 +1,22 @@
 package com.wolkus.body;
 
+import java.beans.PropertyVetoException;
 import java.io.IOException;
+
+import javax.speech.AudioException;
+import javax.speech.EngineException;
+import javax.speech.EngineStateError;
 
 import com.wolkus.brain.Brain;
 import com.wolkus.ear.Ear;
-import com.wolkus.mouth.Mouth;
 
 public class Body {
-	public static void main(String[] args) throws IOException
+	public static void main(String[] args) throws IOException, EngineException, AudioException, IllegalArgumentException, InterruptedException, EngineStateError, PropertyVetoException
     {
-            Mouth mouth = new Mouth();
             Ear ear = new Ear();
             Brain brain  = new Brain();
-
-            mouth.start();
-            ear.start();
+            
+           ear.start();
             brain.start();
 
             while (true) {

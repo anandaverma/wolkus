@@ -1,7 +1,14 @@
 package com.wolkus.ear;
 
+import java.beans.PropertyVetoException;
 import java.io.IOException;
 import java.util.concurrent.TimeUnit;
+
+import javax.speech.AudioException;
+import javax.speech.EngineException;
+import javax.speech.EngineStateError;
+
+import com.wolkus.mouth.Mouth;
 
 import edu.cmu.sphinx.api.Configuration;
 import edu.cmu.sphinx.api.LiveSpeechRecognizer;
@@ -12,8 +19,9 @@ public class Ear implements Runnable {
 	private String threadName = "Ear";
 
 	LiveSpeechRecognizer recognizer;
+	Mouth mouth;
 
-	public Ear() throws IOException {
+	public Ear() throws IOException, EngineException, AudioException, EngineStateError, PropertyVetoException {
 		Configuration configuration = new Configuration();
 
 		// Set path to acoustic model.
@@ -24,26 +32,37 @@ public class Ear implements Runnable {
 		configuration.setLanguageModelPath("resource:/edu/cmu/sphinx/models/en-us/en-us.lm.bin");
 
 		recognizer = new LiveSpeechRecognizer(configuration);
+
+		mouth = new Mouth();
 	}
 
 	@Override
 	public void run() {
 		// Start recognition process pruning previously cached data.
-		recognizer.startRecognition(true);
+		recognizer.startRecognition(false);
 
 		while (true) {
-			try {
-				TimeUnit.SECONDS.sleep(2);
-			} catch (InterruptedException e1) {
-				// TODO Auto-generated catch block
-				e1.printStackTrace();
-			}
 			SpeechResult result = recognizer.getResult();
-			System.out.println(result.getHypothesis());
-			try {
-				Thread.sleep(50);
-			} catch (InterruptedException e) {
-				e.printStackTrace();
+			if (null != result) {
+				System.out.println(result.getHypothesis());
+				try {
+					mouth.speak(result.getHypothesis());
+
+				} catch (EngineException | EngineStateError | AudioException | IllegalArgumentException
+						| InterruptedException e1) {
+					e1.printStackTrace();
+					try {
+						mouth.terminate();
+					} catch (EngineException | EngineStateError e) {
+						e.printStackTrace();
+					}
+				}
+
+				try {
+					Thread.sleep(50);
+				} catch (InterruptedException e) {
+					e.printStackTrace();
+				}
 			}
 		}
 	}
